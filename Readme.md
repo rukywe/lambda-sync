@@ -7,6 +7,7 @@ LambdaSync is a tool to copy AWS Lambda functions from one region to another usi
 - Copy AWS Lambda functions from one region to another
 - Maintain function configuration, including handler, role, runtime, environment variables, and more
 - Simple and configurable setup
+- Configuration validation to ensure necessary environment variables are set
 
 ## Prerequisites
 
@@ -82,3 +83,22 @@ Set up your AWS credentials. You can do this using environment variables or the 
    ```bash
     npm start
    ```
+
+## Configuration Validation
+
+LambdaSync validates that all necessary environment variables are set before starting the process. If any variables are missing, the tool will log an error and provide usage instructions.
+
+Example of an error log when a configuration variable is missing:
+
+```bash
+2024-05-19T17:31:59.380Z [error]: The following environment variables are missing: FUNCTION_NAME. Please set them in the .env file.
+2024-05-19T17:31:59.381Z [error]: Failed to copy Lambda function
+2024-05-19T17:31:59.381Z [error]: The following environment variables are missing: FUNCTION_NAME. Please set them in the .env file.
+Usage Instructions:
+    1. Set the following environment variables in the .env file:
+       - SOURCE_REGION
+       - DESTINATION_REGION
+       - FUNCTION_NAME
+    2. Run the project with: npm start
+
+```
