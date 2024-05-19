@@ -1,8 +1,22 @@
 export async function downloadFunctionCode(url: string): Promise<ArrayBuffer> {
-  const { default: fetch } = await import('node-fetch');
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to download function code from ${url}`);
+  try {
+    const { default: fetch } = await import('node-fetch');
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to download function code from ${url}`);
+    }
+    return await response.arrayBuffer();
+  } catch (error) {
+    throw error;
   }
-  return await response.arrayBuffer();
+}
+
+export function sanitizeUrl(url: string): string {
+  try {
+    const sanitizedUrl = new URL(url);
+    sanitizedUrl.search = '';
+    return sanitizedUrl.toString();
+  } catch {
+    return url;
+  }
 }

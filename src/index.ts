@@ -1,13 +1,18 @@
 import { config } from './config';
 import { copyLambdaFunction } from './lambdaService';
+import logger from './logger';
 
 async function main() {
   const { functionName } = config;
   if (!functionName) {
-    console.error('Function name is not defined in the environment variables.');
+    logger.error('Function name is not defined in the environment variables.');
     return;
   }
-  await copyLambdaFunction(functionName);
+  try {
+    await copyLambdaFunction(functionName);
+  } catch (error) {
+    logger.error('Failed to copy Lambda function');
+  }
 }
 
 main();

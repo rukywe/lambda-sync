@@ -1,18 +1,24 @@
 import * as AWS from 'aws-sdk';
 import { config } from './config';
-import { downloadFunctionCode } from './utils';
+import { downloadFunctionCode, sanitizeUrl } from './utils';
+import logger from './logger';
+import { LambdaSyncError } from './errors';
 
 const sourceLambda = new AWS.Lambda({ region: config.sourceRegion });
 const destinationLambda = new AWS.Lambda({ region: config.destinationRegion });
 
 export async function copyLambdaFunction(functionName: string) {
   try {
+    logger.info(
+      `Starting to copy Lambda function "${functionName}" from "${config.sourceRegion}" to "${config.destinationRegion}"`
+    );
+
     const functionConfig = await sourceLambda
       .getFunction({ FunctionName: functionName })
       .promise();
 
     if (!functionConfig.Configuration) {
-      throw new Error('Function configuration not found.');
+      throw new LambdaSyncError('Function configuration not found.');
     }
 
     const {
@@ -26,7 +32,7 @@ export async function copyLambdaFunction(functionName: string) {
     } = functionConfig.Configuration;
 
     if (!Role || !Handler || !Runtime) {
-      throw new Error('Role, Handler, and Runtime must be defined.');
+      throw new LambdaSyncError('Role, Handler, and Runtime must be defined.');
     }
 
     const functionCode = await sourceLambda
@@ -34,8 +40,11 @@ export async function copyLambdaFunction(functionName: string) {
       .promise();
 
     if (!functionCode.Code || !functionCode.Code.Location) {
-      throw new Error('Function code not found.');
+      throw new LambdaSyncError('Function code not found.');
     }
+
+    const sanitizedUrl = sanitizeUrl(functionCode.Code.Location);
+    logger.info(`Downloading function code from ${sanitizedUrl}`);
 
     const codeBuffer = await downloadFunctionCode(functionCode.Code.Location);
 
@@ -53,14 +62,18 @@ export async function copyLambdaFunction(functionName: string) {
     };
 
     await destinationLambda.createFunction(params).promise();
-    console.log(
+    logger.info(
       `Successfully copied Lambda function "${functionName}" to region "${config.destinationRegion}"`
     );
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Error copying Lambda function: ${error.message}`);
+    if (error instanceof LambdaSyncError) {
+      logger.error(`LambdaSyncError: ${error.message}`);
+    } else if (error instanceof Error) {
+      logger.error(`Unexpected error: ${error.message}`);
     } else {
-      console.error('An unknown error occurred:', error);
+      logger.error('An unknown error occurred.');
     }
+    logger.error('Failed to copy Lambda function');
+    throw error;
   }
 }
