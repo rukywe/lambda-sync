@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node index.ts",
+    "start": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,11 +12,15 @@
   "license": "ISC",
   "description": "A tool to copy AWS Lambda functions from one region to another using Node.js and TypeScript.",
   "devDependencies": {
+    "@types/aws-sdk": "^2.7.0",
     "@types/node": "^20.12.12",
+    "@types/node-fetch": "^2.6.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "aws-sdk": "^2.1623.0"
+    "aws-sdk": "^2.1623.0",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^2.7.0"
   }
 }
